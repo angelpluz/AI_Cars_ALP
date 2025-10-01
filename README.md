@@ -35,9 +35,18 @@ cp .env.example .env
 
 ## Usage
 
-Run the car sales assistant:
+### Interactive Mode
+
+Run the car sales assistant for interactive conversations:
 ```bash
 python car_sales_llm.py
+```
+
+### Demo Mode
+
+Run a quick demonstration of the system:
+```bash
+python demo.py
 ```
 
 ### Example Queries
@@ -55,6 +64,8 @@ python car_sales_llm.py
 AI_Cars_ALP/
 ├── car_sales_llm.py      # Main application with RAG-LLM implementation
 ├── car_inventory.json    # Car inventory database
+├── test_car_sales.py     # Comprehensive test suite
+├── demo.py               # Demo script for quick showcase
 ├── requirements.txt      # Python dependencies
 ├── .env.example         # Example environment configuration
 ├── .gitignore           # Git ignore rules
