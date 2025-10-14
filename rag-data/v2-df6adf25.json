@@ -1,0 +1,167 @@
+{
+  "dataset": "รุ่นรถทดสอบv2",
+  "updatedAt": "2025-10-09T04:10:36.994Z",
+  "chunks": [
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "ซีรีส์ Yaris Ativ\nรุ่น Sport ราคา 549,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, ผ้า, ปรับธรรมดา พร้อมปรับระดับสูง - ต่ำได้, หน้าจอสัมผัสขนาด 8 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Urban Metal, Spicy Scarlet, Super White II, Attitude Black Mica, Metal Stream, Red Mica Metallic\n  • Urban Metal • rgb(62, 62, 62) • 549000\n  • Spicy Scarlet • rgb(212, 47, 24) • 556000\n  • Super White II • rgb(255, 255, 255) • 549000\n  • Attitude Black Mica • rgb(0, 0, 0) • 549000\n  • Metal Stream • rgb(162, 170, 173) • 549000\n  • Red Mica Metallic • rgb(170, 15, 23) • 549000\nรุ่น Smart ราคา 594,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังสังเคราะห์และผ้า, ปรับธรรมดา ปรับร",
+      "embedding": [
+        0.2910437633370287,
+        0.2832388663503638,
+        0.40960212092110654,
+        0.35516507767837574,
+        0.4218222791273034,
+        0.3686503617860212,
+        0.33808165153030756,
+        0.3361797361996221
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "• 549000\n  • Red Mica Metallic • rgb(170, 15, 23) • 549000\nรุ่น Smart ราคา 594,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังสังเคราะห์และผ้า, ปรับธรรมดา ปรับระดับสูง - ต่ำได้, แบบจอสี TFT ขนาด 7 นิ้ว, หน้าจอสัมผัสขนาด 9 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Urban Metal, Spicy Scarlet, Super White II, Attitude Black Mica, Metal Stream, Red Mica Metallic\n  • Urban Metal • rgb(62, 62, 62) • 594000\n  • Spicy Scarlet • rgb(212, 47, 24) • 601000\n  • Super White II • rgb(255, 255, 255) • 594000\n  • Attitude Black Mica • rgb(0, 0, 0) • 594000\n  • Metal Stream • rgb(162, 170, 173) • 594000\n  • Red Mica Metallic • rgb(170, 15, 23) • 594000\nรุ่น Premium ราคา 669,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94",
+      "embedding": [
+        0.3738139467568136,
+        0.3119207080718336,
+        0.4099316980878804,
+        0.4071009889850101,
+        0.35946305333115114,
+        0.3573693153345837,
+        0.28515539760024994,
+        0.30158461121690866
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "tude Black Mica • rgb(0, 0, 0) • 594000\n  • Metal Stream • rgb(162, 170, 173) • 594000\n  • Red Mica Metallic • rgb(170, 15, 23) • 594000\nรุ่น Premium ราคา 669,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังสังเคราะห์และผ้า, ปรับธรรมดา ปรับระดับสูง - ต่ำได้, แบบจอสี TFT ขนาด 7 นิ้ว, หน้าจอสัมผัสขนาด 9 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Urban Metal, Spicy Scarlet, Platinum White Pearl, Attitude Black Mica, Metal Stream, Red Mica Metallic\n  • Urban Metal • rgb(62, 62, 62) • 669000\n  • Spicy Scarlet • rgb(212, 47, 24) • 676000\n  • Platinum White Pearl • rgb(255, 255, 255) • 676000\n  • Attitude Black Mica • rgb(0, 0, 0) • 669000\n  • Metal Stream • rgb(162, 170, 173) • 669000\n  • Red Mica Metallic",
+      "embedding": [
+        0.46583466908396254,
+        0.3653702439610443,
+        0.322256527635938,
+        0.3376156815076046,
+        0.29723508220941525,
+        0.3412265628189848,
+        0.35742217442055163,
+        0.3148557699434048
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "• rgb(212, 47, 24) • 676000\n  • Platinum White Pearl • rgb(255, 255, 255) • 676000\n  • Attitude Black Mica • rgb(0, 0, 0) • 669000\n  • Metal Stream • rgb(162, 170, 173) • 669000\n  • Red Mica Metallic • rgb(170, 15, 23) • 669000\nรุ่น Premium Luxury ราคา 699,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังแท้และหนังสังเคราะห์, ปรับธรรมดา ปรับระดับสูง - ต่ำได้, แบบจอสี TFT ขนาด 7 นิ้ว, หน้าจอสัมผัสขนาด 9 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Urban Metal, Spicy Scarlet, Platinum White Pearl, Attitude Black Mica, Metal Stream, Red Mica Metallic\n  • Urban Metal • rgb(62, 62, 62) • 699000\n  • Spicy Scarlet • rgb(212, 47, 24) • 706000\n  • Platinum White Pearl • rgb(255, 255, 255) • 706000\n  • Attitude",
+      "embedding": [
+        0.33161822621474857,
+        0.29837522410093226,
+        0.2830289175695541,
+        0.33936072029681263,
+        0.37578325252733497,
+        0.3821795200280703,
+        0.4509081077316349,
+        0.3393201305506419
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "lack Mica, Metal Stream, Red Mica Metallic\n  • Urban Metal • rgb(62, 62, 62) • 699000\n  • Spicy Scarlet • rgb(212, 47, 24) • 706000\n  • Platinum White Pearl • rgb(255, 255, 255) • 706000\n  • Attitude Black Mica • rgb(0, 0, 0) • 699000\n  • Metal Stream • rgb(162, 170, 173) • 699000\n  • Red Mica Metallic • rgb(170, 15, 23) • 699000\nรุ่น NIGHTSHADE ราคา 699,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังแท้และหนังสังเคราะห์, ปรับธรรมดา ปรับระดับสูง - ต่ำได้, แบบจอสี TFT ขนาด 7 นิ้ว, หน้าจอสัมผัสขนาด 9 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Cement Gray/Black Roof, Platinum White/Black Roof\n  • Cement Gray/Black Roof • linear-gradient(-45deg, rgb(187, 192, 194), rgb(187, 192, 194) 49%, rgb(187, 192,",
+      "embedding": [
+        0.3490705456778519,
+        0.32847803139325077,
+        0.36921646684186826,
+        0.42706610012328444,
+        0.35683493630975066,
+        0.40937116640058757,
+        0.3069712319798934,
+        0.24979676310125104
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "nect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Cement Gray/Black Roof, Platinum White/Black Roof\n  • Cement Gray/Black Roof • linear-gradient(-45deg, rgb(187, 192, 194), rgb(187, 192, 194) 49%, rgb(187, 192, 194) 49%, rgb(0, 0, 0) 51%, rgb(0, 0, 0) 51%) • 699000\n  • Platinum White/Black Roof • linear-gradient(-45deg, rgb(227, 228, 228), rgb(227, 228, 228) 49%, rgb(227, 228, 228) 49%, rgb(0, 0, 0) 51%, rgb(0, 0, 0) 51%) • 699000",
+      "embedding": [
+        0.2654180492803141,
+        0.35565341132647876,
+        0.2718540229653586,
+        0.3570648090644271,
+        0.35755409361358254,
+        0.3504594676508288,
+        0.417115078155003,
+        0.4207282563641508
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "ซีรีส์ Yaris Ativ\nรุ่น Premium Luxury ราคา 699,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังแท้และหนังสังเคราะห์, ปรับธรรมดา ปรับระดับสูง - ต่ำได้, แบบจอสี TFT ขนาด 7 นิ้ว, หน้าจอสัมผัสขนาด 9 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Urban Metal, Spicy Scarlet, Platinum White Pearl, Attitude Black Mica, Metal Stream, Red Mica Metallic\n  • Urban Metal • rgb(62, 62, 62) • 699000\n  • Spicy Scarlet • rgb(212, 47, 24) • 706000\n  • Platinum White Pearl • rgb(255, 255, 255) • 706000\n  • Attitude Black Mica • rgb(0, 0, 0) • 699000\n  • Metal Stream • rgb(162, 170, 173) • 699000\n  • Red Mica Metallic • rgb(170, 15, 23) • 699000\nรุ่น NIGHTSHADE ราคา 699,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3",
+      "embedding": [
+        0.3005947978099624,
+        0.3153160873617908,
+        0.39592882832018805,
+        0.37738293398737477,
+        0.4517070558258258,
+        0.3528115676970287,
+        0.2976044891461744,
+        0.30652457989025406
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "• rgb(0, 0, 0) • 699000\n  • Metal Stream • rgb(162, 170, 173) • 699000\n  • Red Mica Metallic • rgb(170, 15, 23) • 699000\nรุ่น NIGHTSHADE ราคา 699,000 บาท\n- เครื่องยนต์ 1,197 ซีซี กำลัง 94 แรงม้า 23.3\n- ออปชัน: Full LED, มาตรฐาน, หนังแท้และหนังสังเคราะห์, ปรับธรรมดา ปรับระดับสูง - ต่ำได้, แบบจอสี TFT ขนาด 7 นิ้ว, หน้าจอสัมผัสขนาด 9 นิ้ว, Bluetooth / Apple CarPlay และ Android Auto / T-Connect* / USB, เปิด-ปิดธรรมดา\n- สีที่มี: Cement Gray/Black Roof, Platinum White/Black Roof\n  • Cement Gray/Black Roof • linear-gradient(-45deg, rgb(187, 192, 194), rgb(187, 192, 194) 49%, rgb(187, 192, 194) 49%, rgb(0, 0, 0) 51%, rgb(0, 0, 0) 51%) • 699000\n  • Platinum White/Black Roof • linear-gradient(-45deg, rgb(227, 228, 228), rgb(227, 228, 228) 49%, rgb(227, 228, 228) 49%, rgb(0, 0, 0) 51%, rgb(0, 0, 0) 5",
+      "embedding": [
+        0.43069404248309107,
+        0.38709370884592353,
+        0.31892787163799435,
+        0.30171369806681114,
+        0.3015877406992171,
+        0.3458064105045735,
+        0.3546959471447699,
+        0.3681962868168929
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "gb(0, 0, 0) 51%, rgb(0, 0, 0) 51%) • 699000\n  • Platinum White/Black Roof • linear-gradient(-45deg, rgb(227, 228, 228), rgb(227, 228, 228) 49%, rgb(227, 228, 228) 49%, rgb(0, 0, 0) 51%, rgb(0, 0, 0) 51%) • 699000",
+      "embedding": [
+        0.09055369926551747,
+        0.09333452196769697,
+        0.49978968020080417,
+        0.48957647682189037,
+        0.4913460912687319,
+        0.07422268594180885,
+        0.4908404871410629,
+        0.07589117956311654
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "You are a Toyota finance assistant AI for customers who want to calculate car installment plans.\nWhen the user asks about price, down payment, interest rate, or monthly installment:\n1. Retrieve the car model price from the RAG knowledge base (if available).\n2. If the user provides down payment percentage, interest rate, or number of months, use those directly.\n3. If not provided, assume:\n   - Down payment = 10%\n   - Interest rate = 3.25% per year (simple interest)\n   - Term = 60 months\n4. Use the formula:\n   Monthly payment = (Loan amount × (1 + (interest rate × years))) ÷ (months)\n   where Loan amount = (Car price – Down payment)\n5. Present the result in a clear Thai-language table with:\n   | รายการ | จำนวนเงิน (บาท) |\n   |---------|------------------|\n   | ราคารถ | ... |\n   | เงินดาวน์ (",
+      "embedding": [
+        0.3218300159468544,
+        0.31651122053469793,
+        0.32767783133280065,
+        0.3258477081802307,
+        0.3778203461457918,
+        0.3187559809640221,
+        0.37772026128588565,
+        0.4423464851110126
+      ]
+    },
+    {
+      "dataset": "รุ่นรถทดสอบv2",
+      "text": "an amount = (Car price – Down payment)\n5. Present the result in a clear Thai-language table with:\n   | รายการ | จำนวนเงิน (บาท) |\n   |---------|------------------|\n   | ราคารถ | ... |\n   | เงินดาวน์ (10%) | ... |\n   | ยอดจัดไฟแนนซ์ | ... |\n   | ดอกเบี้ยรวมตลอดงวด | ... |\n   | ค่างวดต่อเดือน (60 งวด) | ... |\n6. Always explain the assumptions and allow the user to adjust terms (e.g., “ต้องการเปลี่ยนจำนวนงวดไหมครับ?”).\nIf the user asks in Thai, reply in Thai with proper numeric formatting and polite tone.",
+      "embedding": [
+        0.3102527847655679,
+        0.31147350749290187,
+        0.4106022965660578,
+        0.355053308858725,
+        0.3338554586985704,
+        0.3080005513336367,
+        0.37847897799626407,
+        0.4031131626338638
+      ]
+    },
+    {
+  "dataset": "รุ่นรถทดสอบv2",
+  "text": "คุณคือผู้ช่วยคำนวณไฟแนนซ์รถยนต์ของ Toyota ที่ใช้ทั้งความรู้ของโมเดลและข้อมูลจาก RAG\n\nหน้าที่หลัก\n1) ค้นหาราคารถจากความรู้ (RAG) ตามรุ่น/เกรดที่ผู้ใช้ถาม หากผู้ใช้ระบุราคาเองให้ใช้ราคานั้น\n2) คำนวณรายการต่อไปนี้จากอินพุตของผู้ใช้:\n   - เงินดาวน์ (รับทั้งเปอร์เซ็นต์หรือจำนวนเงิน)\n   - อัตราดอกเบี้ยต่อปี (APR)\n   - ระยะเวลาผ่อน (จำนวนงวดเป็นเดือน)\n   - ค่าธรรมเนียม/ประกัน/ค่าจดทะเบียน (ถ้ามี ให้บวกเพิ่มหลังยอดจัด)\n   - ตัวเลือกบอลลูน (ถ้าระบุ ให้หักออกจากเงินกู้หลักและสรุปยอดบอลลูนแยก)\n3) ถ้าผู้ใช้ไม่ได้ระบุ ให้ตั้งค่าเริ่มต้นเป็น: ดาวน์ 10%, ดอกเบี้ย 3.25% ต่อปี, ผ่อน 60 งวด, ค่าธรรมเนียม 0 บาท, ไม่ใช้บอลลูน\n\nนิยามตัวแปร\n- ราคา_รถ = ราคาขายรวมภาษีจากความรู้ RAG หรือจากผู้ใช้\n- ดาวน์_% = เปอร์เซ็นต์เงินดาวน์ที่ผู้ใช้ระบุ (เช่น 10)\n- ดาวน์_บาท = ถ้าผู้ใช้ระบุเป็นจำนวนเงินให้ใช้ค่านั้น; ถ้าระบุเป็น % ให้คำนวณเป็น ราคา_รถ × ดาวน์_%/100\n- ยอดจัด = ราคา_รถ − ดาวน์_บาท\n- M = จำนวนงวด (เดือน)\n- r_y = อัตราดอกเบี้ยต่อปีเป็นทศนิยม (เช่น 3.25% = 0.0325)\n- r_m = r_y/12 (อัตราดอกเบี้ยต่อเดือน)\n\nสูตรคำนวณที่รองรับ (เลือกตามคำสั่งผู้ใช้)\nA) ดอกเบี้ยแบบธรรมดา (Flat/Simple interest)\n   ดอกเบี้ยรวม = ยอดจัด × r_y × (M/12)\n   ค่างวดต่อเดือน = (ยอดจัด + ดอกเบี้ยรวม) ÷ M\nB) ผ่อนแบบลดต้นลดดอก (Annuity/Amortized)\n   ค่างวดต่อเดือน = ยอดจัด × r_m ÷ (1 − (1 + r_m)^(−M))\n   ดอกเบี้ยรวม = (ค่างวดต่อเดือน × M) − ยอดจัด\nหากผู้ใช้ไม่ได้ระบุ ให้ใช้แบบ A เป็นค่าเริ่มต้น; ถ้าพบคำว่า \"ลดต้นลดดอก/annuity\" ให้ใช้แบบ B\n\nกติกาการตีความอินพุต\n- หากผู้ใช้ให้ทั้งดาวน์ % และดาวน์เป็นจำนวนเงิน ให้เชื่อจำนวนเงินเป็นหลัก\n- ตรวจค่าผิดปกติ: ดาวน์ < 0% หรือ > 80% ให้เตือนและเสนอช่วงที่เหมาะสม, ดอกเบี้ย < 0 หรือ M < 6 ให้ขอข้อมูลใหม่\n- หากมีบอลลูน (balloon) ให้หักยอดบอลลูนออกจากยอดจัดก่อนคำนวณ และแสดงยอดบอลลูนที่ต้องจ่ายงวดสุดท้าย\n\nรูปแบบคำตอบ (ภาษาไทย ชัดเจน อ่านง่าย)\n1) สรุปสมมติฐานก่อนคำนวณ (รุ่น/ราคา/สูตร/ดอกเบี้ย/งวด/ดาวน์/ค่าธรรมเนียม/มีบอลลูนหรือไม่)\n2) ตารางผลลัพธ์หลัก:\n   | รายการ | จำนวนเงิน (บาท) |\n   |---------|------------------|\n   | ราคารถ | ... |\n   | เงินดาวน์ (x%) | ... |\n   | ยอดจัดไฟแนนซ์ | ... |\n   | อัตราดอกเบี้ย/ปี | ... |\n   | ระยะเวลาผ่อน (งวด) | ... |\n   | ดอกเบี้ยรวมตลอดงวด | ... |\n   | ค่างวดต่อเดือน | ... |\n   | (ถ้ามี) บอลลูนงวดสุดท้าย | ... |\n   | (ถ้ามี) ค่าธรรมเนียม/ประกันที่บวกเพิ่ม | ... |\n3) หมายเหตุ: เป็นการประมาณการเบื้องต้น เงื่อนไขจริงขึ้นกับไฟแนนซ์และเครดิตลูกค้า\n4) ปิดท้ายด้วยคำถามเปิด: \"ต้องการปรับ เปอร์เซ็นต์ดาวน์/ดอกเบี้ย/จำนวนงวด หรือเปรียบเทียบ 48/60/72 งวด ไหมครับ?\"\n\nความสามารถเพิ่มเติมเมื่อผู้ใช้ขอ \"ลองเทียบ\":\n- ทำตารางเปรียบเทียบหลายเงื่อนไข (เช่น ดาวน์ 10/15/20% หรือ 48/60/72 งวด) โดยคงอัตราดอกเบี้ยเดิม เว้นแต่ผู้ใช้สั่งเปลี่ยน\n- แสดงค่างวด/ดอกเบี้ยรวมของแต่ละเงื่อนไขในตารางเดียวกัน\n\nโทนภาษา\n- ตอบเป็นภาษาไทย สุภาพ ตัวเลขจัดรูปแบบด้วยคอมม่า\n- หากข้อมูลใน RAG ไม่มี ให้แจ้งว่าหาไม่พบราคา และขอให้ผู้ใช้ระบุราคาเพื่อคำนวณต่อ\n"
+}
+,
+{"dataset":"รุ่นรถทดสอบv2","text":"[CATALOG]\\nซีรีส์ Innova Zenix\\nรุ่น 2.0 HEV Smart • ราคา 1,379,000 บาท\\n- เครื่องยนต์ 1,987 ซีซี • 152 แรงม้า • 23.6\\n- สี: Attitude Black Mica(1,379,000) | Silver Metallic(1,379,000) | Platinum White Pearl(1,389,000)\\n\\nรุ่น 2.0 HEV Premium • ราคา 1,479,000 บาท\\n- เครื่องยนต์ 1,987 ซีซี • 152 แรงม้า • 23.6\\n- สี: Attitude Black Mica(1,489,000) | Silver Metallic(1,489,000) | Platinum White Pearl(1,499,000)\\n\\nซีรีส์ Yaris Ativ\\nรุ่น Sport • ราคา 549,000 บาท\\n- เครื่องยนต์ 1,197 ซีซี • 94 แรงม้า • 23.3\\n- ออปชันหลัก: Full LED, หน้าจอ 8\", CarPlay/Android Auto, ฯลฯ\\n- สี: Urban Metal(549,000) | Spicy Scarlet(556,000) | Super White II(549,000) | Attitude Black Mica(549,000) | Metal Stream(549,000) | Red Mica Metallic(549,000)\\n\\nรุ่น Smart • ราคา 594,000 บาท\\n- เครื่องยนต์ 1,197 ซีซี • 94 แรงม้า • 23.3\\n- ออปชันหลัก: หน้าจอ 9\", TFT 7\", CarPlay/Android Auto\\n- สี: Urban Metal(594,000) | Spicy Scarlet(601,000) | Super White II(594,000) | Attitude Black Mica(594,000) | Metal Stream(594,000) | Red Mica Metallic(594,000)\\n\\nรุ่น Premium • ราคา 669,000 บาท\\n- เครื่องยนต์ 1,197 ซีซี • 94 แรงม้า • 23.3\\n- สี: Urban Metal(669,000) | Spicy Scarlet(676,000) | Platinum White Pearl(676,000) | Attitude Black Mica(669,000) | Metal Stream(669,000) | Red Mica Metallic(669,000)\\n\\nรุ่น Premium Luxury • ราคา 699,000 บาท\\n- เครื่องยนต์ 1,197 ซีซี • 94 แรงม้า • 23.3\\n- สี: Urban Metal(699,000) | Spicy Scarlet(706,000) | Platinum White Pearl(706,000) | Attitude Black Mica(699,000) | Metal Stream(699,000) | Red Mica Metallic(699,000)\\n\\nรุ่น NIGHTSHADE • ราคา 699,000 บาท\\n- เครื่องยนต์ 1,197 ซีซี • 94 แรงม้า • 23.3\\n- สี: Cement Gray/Black Roof(699,000) | Platinum White/Black Roof(699,000)\\n\\nซีรีส์ Coaster\\nรุ่น Coaster • ราคา 1,960,000 บาท • สี: White(1,960,000)\\n\\nซีรีส์ Hiace\\nรุ่น Hiace Panel • ราคา 999,000 บาท • 2,755 ซีซี 177 แรงม้า • สี: White(1,019,000)\\nรุ่น Hiace GL • ราคา 1,079,000 บาท • สี: White(1,099,000) | Silver Mica Metallic(1,105,000)\\nรุ่น Hiace GL AT • ราคา 1,154,000 บาท • สี: White(1,154,000) | Silver Mica Metallic(1,160,000)\\n\\nซีรีส์ Commuter\\nรุ่น ดีเซล 2.8 MT • ราคา 1,269,000 บาท • สี: White(1,289,000) | Silver Mica Metallic(1,295,000)\\nรุ่น ดีเซล 2.8 AT • ราคา 1,299,000 บาท • สี: White(1,319,000) | Silver Mica Metallic(1,325,000)\\n\\nซีรีส์ Corolla Cross GR Sport\\nรุ่น HEV GR Sport • ราคา 1,254,000 บาท • สี: Platinum White/Black Roof(1,269,000) | Red Mica/Black Roof(1,264,000) | Attitude Black Mica(1,254,000)\\n\\nซีรีส์ Hilux Revo Standard Cab (ตัวอย่างย่อ)\\n- 4x2 2.4 Entry (ไม่มีกระบะ) 564,000 • สี: Super White II(557,000) | Silver Metallic(564,000)\\n- 4x2 2.4 Entry ช่วงล้อสั้น 604,000 • สี: Super White II(597,000) | Dark Grey(604,000) | Silver(604,000)\\n- 4x2 2.4 Entry 604,000 • สี: Super White II(597,000) | Dark Grey(604,000) | Silver(604,000)\\n- 4x2 2.4 Entry AT (ไม่มีกระบะ) 614,000 • สี: Super White II(607,000) | Silver(614,000)\\n- 4X2 2.4 Entry AT 654,000 • สี: Super White II(647,000) | Dark Grey(654,000) | Silver(654,000)\\n- 4X2 2.8 Entry 619,000 • สี: Super White II(612,000) | Dark Grey(619,000) | Silver(619,000)\\n- 4x4 2.8 Entry 724,000 • สี: Super White II(717,000) | Dark Grey(724,000) | Silver(724,000)\\n\\nซีรีส์ Alphard/Vellfire (ย่อ)\\n- Alphard 2.5 HEV 4,129,000 • สี: Black/White Pearl/Precious Metal(4,279,000)\\n- Vellfire 2.5 HEV 4,279,000 • สี: Black/White Pearl/Precious Metal(4,129,000)\\n- Alphard 2.5 HEV Luxury 4,499,000 • สี: Black/White Pearl/Precious Metal(4,499,000)\\n\\nซีรีส์ Fortuner Leader (ย่อ)\\n- 2.4 Leader G 1,371,000 • สี: หลายสี 1,400,000–1,412,000\\n- 2.4 Leader V 1,490,000 • สี: หลายสี 1,530,000–1,542,000\\n- 2.4 Leader V 4WD 1,560,000 • สี: หลายสี 1,600,000–1,612,000\\n- 2.4 Leader S 1,239,000 • สี: Platinum White Pearl(1,251,000) | Silver(1,239,000) | Attitude Black(1,239,000)\\n\\nซีรีส์ Yaris (ย่อ)\\n- Sport 559,000 • สี: Cement Gray(566,000) | อื่นๆ(559,000)\\n- Smart 619,000 • สี: Cement Gray/Spicy Scarlet(626,000) | อื่นๆ(619,000)\\n- Premium 679,000 • สีทูโทนบางสี 691,000 | อื่นๆ 679,000–686,000\\n- Premium S 694,000 • สีทูโทนบางสี 699,000–706,000 | อื่นๆ 694,000–701,000\\n\\nซีรีส์ CAMRY (ย่อ)\\n- HEV Smart 1,795,000 • สี: Precious Metal/Cement Gray/Platinum White(1,475,000) | Attitude Black(1,465,000) *หมายเหตุราคาสีมีความแปลก ตรวจสอบอีกครั้ง\\n- HEV Premium 1,939,000 • สี: Precious Metal/Cement Gray(1,649,000) | Attitude Black(1,739,000) | White Pearl(1,639,000)\\n- HEV Premium Luxury 1,909,000 • สี: Precious Metal/Cement Gray(1,899,000) | Attitude Black(1,889,000) | White Pearl(1,899,000)\\n\\n(…มีรุ่นย่อยอื่น ๆ เช่น Corolla Altis / Cross / GR86 / Yaris Cross / bZ4X / Veloz / Hilux อื่น ๆ ตามบันทึกนี้ — เก็บไว้เพื่อค้นราคาและสีโดยรวม)\\n\\n[NOTE] ราคาสีบางรายการเป็นราคาหลังเพิ่มค่าสีพิเศษ/ทูโทน; ใช้ราคา base model เป็นหลักเมื่อคำนวณไฟแนนซ์ เว้นแต่ผู้ใช้เลือกสีราคาเพิ่ม ให้ใช้ราคานั้นเป็นฐานคำนวณ"},
+{"dataset":"รุ่นรถทดสอบวv2","text":"[FINANCE_RULES]\\nโหมดคำนวณไฟแนนซ์ (ดอกเบี้ยคงที่ Flat Rate เป็นค่าเริ่มต้น)\\nนิยาม: ราคา_รถ, ดาวน์_%, ดาวน์_บาท, ยอดจัด, M(งวด), r_y(ดอกเบี้ย/ปี), r_m=r_y/12\\nหากผู้ใช้ไม่ระบุ: ดาวน์ 10%, r_y 3.25%/ปี, M=60\\nสูตร Flat Rate:\\n1) ดาวน์_บาท = (ถ้าผู้ใช้ให้บาท ใช้ค่านั้น; ถ้าให้% ใช้ ราคา_รถ×ดาวน์_%/100)\\n2) ยอดจัด = ราคา_รถ − ดาวน์_บาท\\n3) ดอกเบี้ยรวม = ยอดจัด × (r_y/100) × (M/12)\\n4) ยอดรวมชำระ = ยอดจัด + ดอกเบี้ยรวม\\n5) ค่างวดต่อเดือน = ยอดรวมชำระ ÷ M\\nรองรับลดต้นลดดอก (Annuity) เมื่อผู้ใช้สั่ง: งวดละ = ยอดจัด×r_m ÷ (1 − (1+r_m)^(−M)); ดอกเบี้ยรวม = (งวดละ×M)−ยอดจัด\\nกติกาอินพุต: ถ้ามีทั้งดาวน์%และจำนวนเงิน ให้เชื่อจำนวนเงินเป็นหลัก; ตรวจค่าสมเหตุสมผล; ถ้าเลือกสีราคาพิเศษ ให้ใช้ราคานั้นเป็นฐาน\\nรูปแบบคำตอบ:\\nสรุปสมมติฐาน + ตาราง:\\n| รายการ | จำนวนเงิน (บาท) |\\n|---------|------------------|\\n| ราคารถ | ... |\\n| เงินดาวน์ (x%) | ... |\\n| ยอดจัดไฟแนนซ์ | ... |\\n| อัตราดอกเบี้ย/ปี | ... |\\n| ระยะเวลาผ่อน (งวด) | ... |\\n| ดอกเบี้ยรวมตลอดงวด | ... |\\n| ค่างวดต่อเดือน | ... |\\nหมายเหตุว่าคำนวณเบื้องต้น และชวนผู้ใช้ปรับ %ดาวน์/ดอก/จำนวนงวด หรือเทียบ 48/60/72/84 งวด\\nตอบเป็นภาษาไทย ตัวเลขมีคอมม่า"},
+  ]
+}
