@@ -1,11 +1,14 @@
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { serveStatic } from 'hono/bun';
-import { getCookie, setCookie } from 'hono/cookie';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { writeFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { createMessage, ensureHistory, pushTrim } from './chatHistory';
 import { fallbackResponse } from './fallbackResponses';
 import { renderHomePage } from './uiTemplate';
+import { renderLoginPage } from './loginTemplate';
 import { renderRagAdminPage } from './ragAdminTemplate';
 import { ingestFromUrl, ingestRaw, retrieve, buildAugmentedPrompt, fetchUrlContent } from './rag';
 import type { RetrievedChunk } from './ragStore';
@@ -47,12 +50,60 @@ const parsedMaxTokens = Number(Bun.env.MAX_TOKENS);
 const DEFAULT_MAX_TOKENS = Number.isFinite(parsedMaxTokens) ? parsedMaxTokens : 768;
 
 const DEFAULT_RAG_DATASET =
-  Bun.env.DEFAULT_RAG_DATASET ?? 'cars-lineup,finance-rules,service-centers,monthly-promos';
+  Bun.env.DEFAULT_RAG_DATASET ?? 'cars-lineup,finance-rules,service-centers,monthly-promos,car-troubleshooting,spare-parts,promotions,buying-guide,car-comparison';
 const DEFAULT_RAG_DATASETS = DEFAULT_RAG_DATASET
   .split(',')
   .map((entry) => entry.trim())
   .filter((entry) => entry.length > 0);
 const RAG_ADMIN_TOKEN = Bun.env.RAG_ADMIN_TOKEN?.trim() || '';
+
+// Users ที่อนุญาตให้ใช้งาน
+const ALLOWED_USERS: Record<string, string> = {
+  'test001': 'L4vqpxLa_XZF',
+  'angelpluz04': 'Rc720699@'
+};
+
+// Store auth sessions
+const authSessions = new Map<string, { username: string; loginAt: string }>();
+
+// Log chat to file
+const LOGS_DIR = join(process.cwd(), 'logs');
+if (!existsSync(LOGS_DIR)) {
+  mkdirSync(LOGS_DIR, { recursive: true });
+}
+
+function logChat(username: string, query: string, response: string, model: string) {
+  const date = new Date();
+  const dateStr = date.toISOString().split('T')[0];
+  const logFile = join(LOGS_DIR, `chat-${dateStr}.json`);
+  
+  const logEntry = {
+    timestamp: date.toISOString(),
+    username,
+    query,
+    response: response.slice(0, 500), // เก็บแค่ 500 ตัวอักษรแรก
+    model,
+    ip: 'unknown' // จะอัปเดตเพิ่มถ้าจำเป็น
+  };
+  
+  let logs: any[] = [];
+  if (existsSync(logFile)) {
+    try {
+      const content = readFileSync(logFile, 'utf-8');
+      logs = JSON.parse(content);
+    } catch {
+      logs = [];
+    }
+  }
+  
+  logs.push(logEntry);
+  
+  try {
+    writeFileSync(logFile, JSON.stringify(logs, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('[log] Failed to write log:', error);
+  }
+}
 
 const app = new Hono();
 
@@ -74,6 +125,23 @@ function ensureSessionId(c: Context): string {
   return sessionId;
 }
 
+// Auth Middleware
+async function requireAuth(c: Context, next: () => Promise<void>): Promise<Response | void> {
+  const authToken = getCookie(c, 'auth_token');
+  
+  if (!authToken || !authSessions.has(authToken)) {
+    return c.redirect('/login');
+  }
+  
+  // Attach username to context for later use
+  c.set('username', authSessions.get(authToken)?.username);
+  await next();
+}
+
+function getUsername(c: Context): string {
+  return c.get('username') || 'unknown';
+}
+
 function chooseModel(params: { explicitModel?: string; message?: string; wantHumanTone?: boolean }): string {
   const { explicitModel, message = '', wantHumanTone = true } = params;
   if (explicitModel) {
@@ -85,6 +153,52 @@ function chooseModel(params: { explicitModel?: string; message?: string; wantHum
   }
   return DEFAULT_MODEL;
 }
+
+// Login page (public)
+app.get('/login', (c) => {
+  const error = c.req.query('error');
+  return c.html(renderLoginPage({ error: error || '' }));
+});
+
+app.post('/login', async (c) => {
+  const body = await c.req.formData();
+  const username = body.get('username')?.toString() || '';
+  const password = body.get('password')?.toString() || '';
+  
+  if (ALLOWED_USERS[username] === password) {
+    const authToken = crypto.randomUUID();
+    authSessions.set(authToken, {
+      username,
+      loginAt: new Date().toISOString()
+    });
+    
+    const isSecure = c.req.url.startsWith('https://');
+    setCookie(c, 'auth_token', authToken, {
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure: isSecure,
+      path: '/',
+      maxAge: 60 * 60 * 12, // 12 ชั่วโมง
+    });
+    
+    return c.redirect('/');
+  }
+  
+  return c.redirect('/login?error=1');
+});
+
+app.get('/logout', (c) => {
+  const authToken = getCookie(c, 'auth_token');
+  if (authToken) {
+    authSessions.delete(authToken);
+    deleteCookie(c, 'auth_token');
+  }
+  return c.redirect('/login');
+});
+
+// Protected routes
+app.use('/', requireAuth);
+app.use('/api/*', requireAuth);
 
 app.get('/', (c) => {
   const uiConfig = {
@@ -418,6 +532,10 @@ app.post('/api/query', async (c) => {
     pushTrim(history, createMessage('user', query), HISTORY_LIMIT);
     pushTrim(history, createMessage('assistant', answer), HISTORY_LIMIT);
 
+    // Log chat to file
+    const username = getUsername(c);
+    logChat(username, query, answer, result.model ?? model);
+
     return c.json({
       ok: true,
       response: answer,
@@ -430,9 +548,15 @@ app.post('/api/query', async (c) => {
     });
   } catch (error) {
     console.error('Remote LLM relay failed:', error);
+    
+    // Log error case too
+    const username = getUsername(c);
+    const fallbackMsg = fallbackResponse(query);
+    logChat(username, query, fallbackMsg, 'fallback');
+    
     return c.json({
       ok: false,
-      response: fallbackResponse(query),
+      response: fallbackMsg,
       fallback: true,
       proxyBase,
     });
