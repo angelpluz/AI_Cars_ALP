@@ -50,7 +50,7 @@ const parsedMaxTokens = Number(Bun.env.MAX_TOKENS);
 const DEFAULT_MAX_TOKENS = Number.isFinite(parsedMaxTokens) ? parsedMaxTokens : 768;
 
 const DEFAULT_RAG_DATASET =
-  Bun.env.DEFAULT_RAG_DATASET ?? 'cars-lineup,finance-rules,service-centers,monthly-promos,car-troubleshooting,spare-parts,promotions,buying-guide,car-comparison';
+  Bun.env.DEFAULT_RAG_DATASET ?? 'cars-lineup,finance-rules,service-centers,car-troubleshooting,spare-parts,promotions,buying-guide,car-comparison';
 const DEFAULT_RAG_DATASETS = DEFAULT_RAG_DATASET
   .split(',')
   .map((entry) => entry.trim())
@@ -463,10 +463,16 @@ app.post('/api/query', async (c) => {
     let toSend = query;
     let citations: Array<{ idx: number; source?: string }> = [];
 
-    const datasetNames = normalizeDatasetNames(body.ragContext);
+    // ใช้ทุก datasets ที่มี ถ้าไม่ได้ระบุเฉพาะ
+    let datasetNames = normalizeDatasetNames(body.ragContext);
+    if (!datasetNames.length || datasetNames.length === 0) {
+      datasetNames = [...DEFAULT_RAG_DATASETS];
+    }
+    console.log('[RAG] Using datasets:', datasetNames);
     if (body.useRAG && datasetNames.length) {
       const retrievalK = chooseRetrievalK(datasetNames);
       const retrieved = await retrieve(datasetNames, query, retrievalK, { useHybrid: true, rerank: true });
+      console.log('[RAG] Retrieved', retrieved.length, 'chunks');
       if (retrieved.length) {
         const sourceIndexMap = new Map<string, number>();
         let nextSourceIndex = 1;
