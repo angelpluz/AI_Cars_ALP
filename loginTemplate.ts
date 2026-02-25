@@ -9,6 +9,7 @@ export function renderLoginPage(params: { error: string }): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เข้าสู่ระบบ - Toyota Thonburi AI</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23e11d48'/><text x='50' y='68' font-size='50' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'>T</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
