@@ -13,6 +13,7 @@ export type RemoteChatPayload = {
   model: string;
   message: string;
   temperature: number;
+  messages?: Array<{ role: string; content: string }>;
 };
 
 export type RemoteChatResult = {
@@ -21,12 +22,19 @@ export type RemoteChatResult = {
   proxyBase: string;
 };
 
+type RemoteMessage = {
+  role?: string;
+  content?: string;
+};
+
 type RemoteChatResponse = {
   ok?: boolean;
   model?: string;
   answer?: string;
   response?: string;
   error?: string;
+  message?: RemoteMessage;
+  messages?: RemoteMessage[];
 };
 
 type RemoteSessionState = {
@@ -34,19 +42,43 @@ type RemoteSessionState = {
   lastLoginMs: number;
 };
 
+type OpenAIResponsesContent = {
+  type?: string;
+  text?: string;
+};
+
+type OpenAIResponsesOutputItem = {
+  type?: string;
+  content?: OpenAIResponsesContent[];
+};
+
+type OpenAIResponsesResponse = {
+  id?: string;
+  model?: string;
+  output_text?: string;
+  output?: OpenAIResponsesOutputItem[];
+  error?: {
+    message?: string;
+  };
+};
+
 type HeadersInitCompat = Headers | Array<[string, string]> | Record<string, string>;
 type RequestInitCompat = RequestInit & { headers?: HeadersInitCompat };
 
-const REMOTE_BASE_URL = normalizeBaseUrl(Bun.env.REMOTE_BASE_URL ?? 'http://angelpluz.ddns.net:3001');
+const OPENAI_API_KEY = Bun.env.OPENAI_API_KEY?.trim() ?? '';
+const OPENAI_BASE_URL = normalizeBaseUrl(Bun.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1');
+const useOpenAIDirect = OPENAI_API_KEY.length > 0;
+
+const REMOTE_BASE_URL = normalizeBaseUrl(Bun.env.REMOTE_BASE_URL ?? 'http://angelpluzalp.ddns.net:3001');
 const REMOTE_LOGIN_PATH = Bun.env.REMOTE_LOGIN_PATH ?? '/login';
-const REMOTE_CHAT_PATH = Bun.env.REMOTE_CHAT_PATH ?? '/chat';
+const REMOTE_CHAT_PATH = Bun.env.REMOTE_CHAT_PATH ?? '/api/chat';
 const REMOTE_USERNAME = Bun.env.REMOTE_USERNAME ?? 'toon';
 const REMOTE_PASSWORD = Bun.env.REMOTE_PASSWORD ?? '1234';
 const REMOTE_SESSION_COOKIE_NAME = Bun.env.REMOTE_SESSION_COOKIE_NAME ?? 'connect.sid';
 const parsedRefresh = Number.parseInt(Bun.env.REMOTE_SESSION_REFRESH_MS ?? '', 10);
 const REMOTE_SESSION_REFRESH_MS =
   Number.isFinite(parsedRefresh) && parsedRefresh > 0 ? parsedRefresh : 20 * 60 * 1000;
-const shouldAuthenticateRemote = REMOTE_USERNAME.length > 0 && REMOTE_PASSWORD.length > 0;
+const shouldAuthenticateRemote = !useOpenAIDirect && REMOTE_USERNAME.length > 0 && REMOTE_PASSWORD.length > 0;
 
 const sessionStore = new Map<string, RemoteSessionState>();
 
@@ -177,11 +209,144 @@ async function fetchRemote(base: string, path: string, init: RequestInitCompat =
   return response;
 }
 
+function normalizeRequestedModel(model: string): string {
+  const trimmed = model.trim();
+  if (!trimmed) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('openai/')) {
+    return trimmed.slice('openai/'.length);
+  }
+  return trimmed;
+}
+
+function extractOpenAIResponseText(data: OpenAIResponsesResponse): string {
+  if (typeof data.output_text === 'string' && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+
+  if (!Array.isArray(data.output)) {
+    return '';
+  }
+
+  const parts: string[] = [];
+  for (const item of data.output) {
+    if (!Array.isArray(item?.content)) {
+      continue;
+    }
+    for (const entry of item.content) {
+      if (typeof entry?.text === 'string' && entry.text.trim()) {
+        parts.push(entry.text.trim());
+      }
+    }
+  }
+
+  return parts.join('\n').trim();
+}
+
+async function sendOpenAIChat(payload: RemoteChatPayload): Promise<RemoteChatResult> {
+  const model = normalizeRequestedModel(payload.model);
+  if (!model) {
+    throw new Error('Model is required for OpenAI direct mode.');
+  }
+
+  // สร้าง messages array สำหรับ conversation history
+  const messages: Array<{ role: string; content: string }> = [];
+  
+  // System prompt
+  messages.push({
+    role: 'system',
+    content: 'คุณเป็นผู้ช่วยลูกค้าของโตโยต้า ธนบุรี ให้ตอบคำถามอย่างสุภาพ กระชับ และเป็นประโยชน์ ใช้ภาษาไทยที่เข้าใจง่าย',
+  });
+  
+  // เพิ่ม history ถ้ามี
+  if (payload.messages && payload.messages.length > 0) {
+    // เอาเฉพาะ 10 ข้อความล่าสุดเพื่อไม่ให้ยาวเกิน
+    const recentMessages = payload.messages.slice(-10);
+    messages.push(...recentMessages);
+  }
+  
+  // เพิ่มข้อความปัจจุบัน
+  messages.push({ role: 'user', content: payload.message });
+
+  const bodyPayload: Record<string, unknown> = {
+    model,
+    messages,
+  };
+
+  if (Number.isFinite(payload.temperature)) {
+    bodyPayload.temperature = payload.temperature;
+  }
+
+  const doRequest = async (requestPayload: Record<string, unknown>): Promise<Response> =>
+    fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify(requestPayload),
+    });
+
+  let response = await doRequest(bodyPayload);
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    const canRetryWithoutTemperature =
+      response.status === 400 &&
+      Object.prototype.hasOwnProperty.call(bodyPayload, 'temperature') &&
+      /temperature/i.test(errorText) &&
+      /unsupported|not supported/i.test(errorText);
+
+    if (canRetryWithoutTemperature) {
+      const retryPayload = { ...bodyPayload };
+      delete retryPayload.temperature;
+      response = await doRequest(retryPayload);
+      if (!response.ok) {
+        const retryErrorText = await response.text().catch(() => '');
+        throw new Error(`OpenAI responded ${response.status}: ${retryErrorText}`);
+      }
+    } else {
+      throw new Error(`OpenAI responded ${response.status}: ${errorText}`);
+    }
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    error?: { message?: string };
+    model?: string;
+  };
+  
+  const answer = data.choices?.[0]?.message?.content?.trim();
+  if (!answer) {
+    const message = data.error?.message ?? 'OpenAI returned empty output.';
+    throw new Error(message);
+  }
+
+  return {
+    answer,
+    model: data.model ?? model,
+    proxyBase: OPENAI_BASE_URL,
+  };
+}
+
 export async function sendRemoteChat(
   payload: RemoteChatPayload,
   baseOverride?: string
 ): Promise<RemoteChatResult> {
+  if (useOpenAIDirect) {
+    return sendOpenAIChat(payload);
+  }
+
   const targetBase = normalizeBaseUrl(baseOverride && baseOverride.length ? baseOverride : REMOTE_BASE_URL);
+
+  const bodyPayload: Record<string, unknown> = {
+    model: payload.model,
+    temperature: payload.temperature,
+    message: payload.message,
+    messages: [{ role: 'user', content: payload.message }],
+    stream: false,
+  };
 
   const response = await fetchRemote(targetBase, REMOTE_CHAT_PATH, {
     method: 'POST',
@@ -189,7 +354,7 @@ export async function sendRemoteChat(
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(bodyPayload),
   });
 
   if (!response.ok) {
@@ -198,13 +363,29 @@ export async function sendRemoteChat(
   }
 
   const data = (await response.json()) as RemoteChatResponse;
-  if (!data?.ok) {
-    throw new Error(data?.error || 'Remote proxy returned an unsuccessful response.');
+
+  const answerCandidates: Array<string | undefined> = [
+    data?.answer,
+    data?.response,
+    data?.message?.content,
+  ];
+
+  if (Array.isArray(data?.messages)) {
+    const merged = data.messages
+      .map((item) => (typeof item?.content === 'string' ? item.content.trim() : ''))
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+    answerCandidates.push(merged || undefined);
   }
 
-  const answer = data.answer ?? data.response ?? '';
+  const answer = answerCandidates.find((value) => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
   if (!answer) {
-    throw new Error('Remote proxy returned an empty payload.');
+    throw new Error(data?.error || 'Remote proxy returned an empty payload.');
+  }
+
+  if (data && typeof data.ok === 'boolean' && !data.ok) {
+    throw new Error(data.error || 'Remote proxy marked the response as unsuccessful.');
   }
 
   return {
@@ -215,7 +396,7 @@ export async function sendRemoteChat(
 }
 
 export const remoteProxyInfo: RemoteProxyInfo = {
-  baseUrl: REMOTE_BASE_URL,
+  baseUrl: useOpenAIDirect ? OPENAI_BASE_URL : REMOTE_BASE_URL,
   loginPath: REMOTE_LOGIN_PATH,
   chatPath: REMOTE_CHAT_PATH,
   username: REMOTE_USERNAME,

@@ -190,6 +190,35 @@ const ADMIN_TEMPLATE = String.raw`
 
     <section class="card">
       <div>
+        <h2>Fetch URL &amp; Clean</h2>
+        <p class="hint">
+          ใส่ลิงก์ต้นทาง แล้วให้ระบบดึงข้อมูลมาทำความสะอาด พร้อมตัวเลือก LLM review ในขั้นตอนเดียว.
+        </p>
+      </div>
+      <form id="urlFetchForm">
+        <label>
+          Dataset name (optional)
+          <input type="text" id="urlDatasetInput" placeholder="e.g. tpqi-qualifications" />
+        </label>
+        <label>
+          Source URL
+          <input type="url" id="urlFetchInput" placeholder="https://example.com/article" required />
+        </label>
+        <div class="checkboxRow">
+          <label class="checkboxLabel">
+            <input type="checkbox" id="urlReviewCheckbox" checked />
+            <span>Run LLM review with model {{LARGE_MODEL}}</span>
+          </label>
+        </div>
+        <div class="actions">
+          <button type="submit">Fetch &amp; Clean</button>
+        </div>
+      </form>
+      <div class="status" id="urlFetchStatus">Awaiting URL.</div>
+    </section>
+
+    <section class="card">
+      <div>
         <h2>Upload JSON Dataset</h2>
         <p class="hint">
           เลือกไฟล์ JSON เพื่อทำความสะอาด ถอด artefact จากเว็บ และให้โมเดล {{LARGE_MODEL}} ทวนซ้ำให้อัตโนมัติ.
@@ -249,6 +278,12 @@ const ADMIN_TEMPLATE = String.raw`
     const DEFAULT_DATASET = '{{DEFAULT_DATASET}}';
     const LARGE_MODEL = '{{LARGE_MODEL}}';
 
+    const urlFetchForm = document.getElementById('urlFetchForm');
+    const urlDatasetInput = document.getElementById('urlDatasetInput');
+    const urlFetchInput = document.getElementById('urlFetchInput');
+    const urlReviewCheckbox = document.getElementById('urlReviewCheckbox');
+    const urlFetchStatus = document.getElementById('urlFetchStatus');
+
     const uploadForm = document.getElementById('jsonUploadForm');
     const uploadDatasetInput = document.getElementById('uploadDatasetInput');
     const jsonFileInput = document.getElementById('jsonFileInput');
@@ -267,6 +302,9 @@ const ADMIN_TEMPLATE = String.raw`
     if (datasetInput instanceof HTMLInputElement && DEFAULT_DATASET) {
       datasetInput.value = DEFAULT_DATASET;
     }
+    if (urlDatasetInput instanceof HTMLInputElement && DEFAULT_DATASET) {
+      urlDatasetInput.value = DEFAULT_DATASET;
+    }
 
     function setStatus(message, flash) {
       if (!statusEl) return;
@@ -283,6 +321,15 @@ const ADMIN_TEMPLATE = String.raw`
       if (flash) {
         uploadStatus.classList.add('flash');
         setTimeout(() => uploadStatus.classList.remove('flash'), 1600);
+      }
+    }
+
+    function setUrlStatus(message, flash) {
+      if (!(urlFetchStatus instanceof HTMLElement)) return;
+      urlFetchStatus.textContent = message;
+      if (flash) {
+        urlFetchStatus.classList.add('flash');
+        setTimeout(() => urlFetchStatus.classList.remove('flash'), 1600);
       }
     }
 
@@ -310,7 +357,6 @@ const ADMIN_TEMPLATE = String.raw`
         return '';
       }
       return text.length > 4000 ? text.slice(0, 4000) + '\n...' : text;
-    }
     }
 
     function activatePreview(target) {
@@ -342,6 +388,79 @@ const ADMIN_TEMPLATE = String.raw`
       if (!enabled && activePreview === 'review') {
         activatePreview('clean');
       }
+    }
+
+    function applyCleaningResult(data, options) {
+      const opts = options || {};
+      const datasetName = typeof opts.datasetName === 'string' ? opts.datasetName.trim() : '';
+      const reviewRequested = opts.reviewRequested !== false;
+      const summary = data?.summary || {};
+      const hasReviewed = typeof data?.reviewed === 'string' && data.reviewed.length > 0;
+
+      if (jsonPreviewClean instanceof HTMLTextAreaElement && typeof data?.cleaned === 'string') {
+        jsonPreviewClean.value = formatPreview(data.cleaned);
+      }
+
+      if (downloadCleanLink instanceof HTMLAnchorElement && typeof data?.cleaned === 'string') {
+        const blob = new Blob([data.cleaned], { type: 'application/json' });
+        cleanDownloadUrl = URL.createObjectURL(blob);
+        downloadCleanLink.href = cleanDownloadUrl;
+        const cleanName =
+          typeof data.cleanedFilename === 'string' && data.cleanedFilename
+            ? data.cleanedFilename
+            : datasetName
+            ? datasetName + '.clean-only.json'
+            : 'dataset.clean-only.json';
+        downloadCleanLink.download = cleanName;
+        downloadCleanLink.style.display = 'inline-block';
+      }
+
+      if (jsonPreviewReview instanceof HTMLTextAreaElement) {
+        if (hasReviewed && typeof data?.reviewed === 'string') {
+          jsonPreviewReview.value = formatPreview(data.reviewed);
+        } else if (reviewRequested) {
+          jsonPreviewReview.value = 'No LLM review output was returned.';
+        } else {
+          jsonPreviewReview.value = 'LLM review was disabled for this run.';
+        }
+      }
+
+      if (downloadReviewLink instanceof HTMLAnchorElement) {
+        if (hasReviewed && typeof data?.reviewed === 'string') {
+          const reviewBlob = new Blob([data.reviewed], { type: 'application/json' });
+          reviewDownloadUrl = URL.createObjectURL(reviewBlob);
+          downloadReviewLink.href = reviewDownloadUrl;
+          const reviewName =
+            typeof data.reviewedFilename === 'string' && data.reviewedFilename
+              ? data.reviewedFilename
+              : datasetName
+              ? datasetName + '.reviewed.json'
+              : 'dataset.reviewed.json';
+          downloadReviewLink.download = reviewName;
+          downloadReviewLink.style.display = 'inline-block';
+        } else {
+          downloadReviewLink.style.display = 'none';
+          downloadReviewLink.removeAttribute('href');
+        }
+      }
+
+      setReviewAvailability(hasReviewed);
+      activatePreview(activePreview);
+
+      const parts = [
+        'Records: ' + (data?.recordCount ?? '?'),
+        'Cookies removed: ' + (summary.removedCookieParagraphs ?? '?'),
+        'Empty rows removed: ' + (summary.removedEmptyDataRows ?? '?'),
+      ];
+      if (data?.modelUsed) {
+        parts.push('LLM review: ' + data.modelUsed);
+      } else if (reviewRequested) {
+        parts.push('LLM review: ' + (hasReviewed ? 'complete' : 'unavailable'));
+      } else {
+        parts.push('LLM review: disabled');
+      }
+
+      return { parts };
     }
 
     previewButtons.forEach((button) => {
@@ -382,6 +501,60 @@ const ADMIN_TEMPLATE = String.raw`
         } catch (error) {
           console.error(error);
           setStatus('Failed to ingest knowledge.', true);
+        }
+      });
+    }
+
+    if (urlFetchForm instanceof HTMLFormElement) {
+      urlFetchForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const sourceUrl =
+          urlFetchInput instanceof HTMLInputElement ? urlFetchInput.value.trim() : '';
+        if (!sourceUrl) {
+          setUrlStatus('Please enter a source URL.', true);
+          return;
+        }
+
+        const datasetName =
+          urlDatasetInput instanceof HTMLInputElement ? urlDatasetInput.value.trim() : '';
+        const reviewRequested =
+          urlReviewCheckbox instanceof HTMLInputElement ? Boolean(urlReviewCheckbox.checked) : true;
+
+        setUrlStatus('Fetching & cleaning...', true);
+        resetDownloads();
+        setReviewAvailability(false);
+        activatePreview('clean');
+        if (jsonPreviewClean instanceof HTMLTextAreaElement) {
+          jsonPreviewClean.value = '';
+        }
+        if (jsonPreviewReview instanceof HTMLTextAreaElement) {
+          jsonPreviewReview.value = '';
+        }
+
+        try {
+          const payload = {
+            url: sourceUrl,
+            dataset: datasetName || undefined,
+            review: reviewRequested,
+            model: reviewRequested && LARGE_MODEL ? LARGE_MODEL : undefined,
+          };
+
+          const response = await fetch('/api/rag/fetch-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + response.status));
+          }
+
+          const resultMeta = applyCleaningResult(data, { datasetName, reviewRequested });
+          setUrlStatus('Success - ' + resultMeta.parts.join(' | '), true);
+        } catch (error) {
+          console.error(error);
+          setUrlStatus('Failed to fetch URL.', true);
         }
       });
     }
@@ -432,65 +605,8 @@ const ADMIN_TEMPLATE = String.raw`
             throw new Error(data.error || ('HTTP ' + response.status));
           }
 
-          const summary = data.summary || {};
-          const hasReviewed = typeof data.reviewed === 'string' && data.reviewed.length > 0;
-          const parts = [
-            'Records: ' + (data.recordCount ?? '?'),
-            'Cookies removed: ' + (summary.removedCookieParagraphs ?? '?'),
-            'Empty rows removed: ' + (summary.removedEmptyDataRows ?? '?'),
-          ];
-          if (data.modelUsed) {
-            parts.push('LLM review: ' + data.modelUsed);
-          } else if (reviewRequested) {
-            parts.push('LLM review: ' + (hasReviewed ? 'complete' : 'unavailable'));
-          } else {
-            parts.push('LLM review: disabled');
-          }
-          setUploadStatus('Success - ' + parts.join(' | '), true);
-
-          if (jsonPreviewClean instanceof HTMLTextAreaElement && typeof data.cleaned === 'string') {
-            jsonPreviewClean.value = formatPreview(data.cleaned);
-          }
-
-          if (downloadCleanLink instanceof HTMLAnchorElement && typeof data.cleaned === 'string') {
-            const blob = new Blob([data.cleaned], { type: 'application/json' });
-            cleanDownloadUrl = URL.createObjectURL(blob);
-            downloadCleanLink.href = cleanDownloadUrl;
-            const cleanName = typeof data.cleanedFilename === 'string' && data.cleanedFilename
-              ? data.cleanedFilename
-              : (datasetName ? datasetName + '.clean-only.json' : 'dataset.clean-only.json');
-            downloadCleanLink.download = cleanName;
-            downloadCleanLink.style.display = 'inline-block';
-          }
-
-          if (jsonPreviewReview instanceof HTMLTextAreaElement) {
-            if (hasReviewed) {
-              jsonPreviewReview.value = formatPreview(data.reviewed);
-            } else {
-              jsonPreviewReview.value = reviewRequested
-                ? 'ไม่มีผลลัพธ์จาก LLM สำหรับไฟล์นี้.'
-                : 'LLM review ถูกปิดสำหรับการอัปโหลดนี้.';
-            }
-          }
-
-          if (downloadReviewLink instanceof HTMLAnchorElement) {
-            if (hasReviewed) {
-              const reviewBlob = new Blob([data.reviewed], { type: 'application/json' });
-              reviewDownloadUrl = URL.createObjectURL(reviewBlob);
-              downloadReviewLink.href = reviewDownloadUrl;
-              const reviewName = typeof data.reviewedFilename === 'string' && data.reviewedFilename
-                ? data.reviewedFilename
-                : (datasetName ? datasetName + '.reviewed.json' : 'dataset.reviewed.json');
-              downloadReviewLink.download = reviewName;
-              downloadReviewLink.style.display = 'inline-block';
-            } else {
-              downloadReviewLink.style.display = 'none';
-              downloadReviewLink.removeAttribute('href');
-            }
-          }
-
-          setReviewAvailability(hasReviewed);
-          activatePreview(activePreview);
+          const resultMeta = applyCleaningResult(data, { datasetName, reviewRequested });
+          setUploadStatus('Success - ' + resultMeta.parts.join(' | '), true);
         } catch (error) {
           console.error(error);
           setUploadStatus('Failed to process JSON upload.', true);

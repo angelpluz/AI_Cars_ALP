@@ -7,7 +7,8 @@ import { createMessage, ensureHistory, pushTrim } from './chatHistory';
 import { fallbackResponse } from './fallbackResponses';
 import { renderHomePage } from './uiTemplate';
 import { renderRagAdminPage } from './ragAdminTemplate';
-import { ingestFromUrl, ingestRaw, retrieve, buildAugmentedPrompt } from './rag';
+import { ingestFromUrl, ingestRaw, retrieve, buildAugmentedPrompt, fetchUrlContent } from './rag';
+import type { RetrievedChunk } from './ragStore';
 import { cleanJsonPayload, type RawRecord } from './datasetCleaner';
 import {
   remoteProxyInfo,
@@ -26,6 +27,7 @@ type QueryRequest = {
   proxyBase?: string;
   ragContext?: {
     datasetName?: string;
+    datasetNames?: string[];
     sourceUrl?: string;
     notes?: string;
   };
@@ -44,7 +46,12 @@ const DEFAULT_TEMPERATURE = Number.isFinite(parsedTemperature) ? parsedTemperatu
 const parsedMaxTokens = Number(Bun.env.MAX_TOKENS);
 const DEFAULT_MAX_TOKENS = Number.isFinite(parsedMaxTokens) ? parsedMaxTokens : 768;
 
-const DEFAULT_RAG_DATASET = Bun.env.DEFAULT_RAG_DATASET ?? '';
+const DEFAULT_RAG_DATASET =
+  Bun.env.DEFAULT_RAG_DATASET ?? 'cars-lineup,finance-rules,service-centers,monthly-promos';
+const DEFAULT_RAG_DATASETS = DEFAULT_RAG_DATASET
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter((entry) => entry.length > 0);
 const RAG_ADMIN_TOKEN = Bun.env.RAG_ADMIN_TOKEN?.trim() || '';
 
 const app = new Hono();
@@ -117,6 +124,88 @@ app.get('/admin/rag', (c) => {
       largeModel: LARGE_MODEL,
     }),
   );
+});
+
+app.post('/api/rag/fetch-url', async (c) => {
+  let payload: { url?: string; dataset?: string; review?: boolean; model?: string } = {};
+  try {
+    payload = (await c.req.json()) as typeof payload;
+  } catch (error) {
+    console.error('RAG fetch-url parse error:', error);
+    return c.json({ ok: false, error: 'Invalid JSON payload.' }, 400);
+  }
+
+  const sourceUrlRaw = typeof payload.url === 'string' ? payload.url.trim() : '';
+  if (!sourceUrlRaw) {
+    return c.json({ ok: false, error: 'Source URL is required.' }, 400);
+  }
+
+  let normalizedUrl: string;
+  try {
+    normalizedUrl = new URL(sourceUrlRaw).toString();
+  } catch {
+    return c.json({ ok: false, error: 'Invalid source URL.' }, 400);
+  }
+
+  const datasetName = typeof payload.dataset === 'string' ? payload.dataset.trim() : '';
+  const reviewFlag = payload.review === false ? false : true;
+  const modelOverride = typeof payload.model === 'string' ? payload.model.trim() : '';
+
+  try {
+    const { text, raw, contentType } = await fetchUrlContent(normalizedUrl);
+
+    const titleFromHtml = extractTitleFromHtml(raw);
+    const fallbackTitle = titleFromHtml || deriveFallbackTitle(normalizedUrl);
+    const description = deriveDescriptionFromText(text);
+
+    const rawRecord: RawRecord = {
+      url: normalizedUrl,
+      title: fallbackTitle || undefined,
+      description: description || undefined,
+      content_text: text,
+      content_markdown: text,
+    };
+    if (datasetName) {
+      rawRecord.dataset = datasetName;
+    }
+
+    const result = await cleanJsonPayload(rawRecord, {
+      review: reviewFlag,
+      model: modelOverride || undefined,
+    });
+
+    const cleanedString = JSON.stringify(result.cleaned, null, 2);
+    const reviewedString = result.reviewed ? JSON.stringify(result.reviewed, null, 2) : undefined;
+
+    let filenameCandidate = datasetName || fallbackTitle || '';
+    if (!filenameCandidate) {
+      try {
+        filenameCandidate = new URL(normalizedUrl).hostname;
+      } catch {
+        filenameCandidate = normalizedUrl;
+      }
+    }
+    const baseName = buildFilenameBase(filenameCandidate);
+
+    return c.json({
+      ok: true,
+      sourceUrl: normalizedUrl,
+      dataset: datasetName || undefined,
+      summary: result.summary,
+      recordCount: result.recordCount,
+      modelUsed: result.modelUsed,
+      cleaned: cleanedString,
+      cleanedFilename: `${baseName}.clean-only.json`,
+      reviewed: reviewedString,
+      reviewedFilename: reviewedString ? `${baseName}.reviewed.json` : undefined,
+      meta: {
+        contentType,
+      },
+    });
+  } catch (error) {
+    console.error('RAG fetch-url error:', error);
+    return c.json({ ok: false, error: String(error) }, 500);
+  }
 });
 
 app.post('/api/rag/upsert', async (c) => {
@@ -260,30 +349,65 @@ app.post('/api/query', async (c) => {
     let toSend = query;
     let citations: Array<{ idx: number; source?: string }> = [];
 
-    const datasetName = body.ragContext?.datasetName?.trim();
-    if (body.useRAG && datasetName) {
-      const retrieved = await retrieve(datasetName, query, 5);
+    const datasetNames = normalizeDatasetNames(body.ragContext);
+    if (body.useRAG && datasetNames.length) {
+      const retrievalK = chooseRetrievalK(datasetNames);
+      const retrieved = await retrieve(datasetNames, query, retrievalK, { useHybrid: true, rerank: true });
       if (retrieved.length) {
+        const sourceIndexMap = new Map<string, number>();
+        let nextSourceIndex = 1;
+        const contexts = retrieved.map((item) => {
+          const source = item.sourceUrl?.trim();
+          if (source) {
+            let idx = sourceIndexMap.get(source);
+            if (!idx) {
+              idx = nextSourceIndex;
+              sourceIndexMap.set(source, idx);
+              nextSourceIndex += 1;
+            }
+            return { text: item.text, sourceUrl: source, dataset: item.dataset, citationIndex: idx };
+          }
+          return { text: item.text, sourceUrl: undefined, dataset: item.dataset };
+        });
+
         toSend = buildAugmentedPrompt(
           query,
-          retrieved.map((item) => ({ text: item.text, sourceUrl: item.sourceUrl }))
+          contexts,
         );
-        citations = retrieved.map((item, index) => ({ idx: index + 1, source: item.sourceUrl }));
+        citations = [...sourceIndexMap.entries()]
+          .map(([source, idx]) => ({ idx, source }))
+          .sort((a, b) => a.idx - b.idx);
       }
     }
+
+    // เตรียม messages สำหรับ conversation history
+    const conversationMessages = history.map(h => ({
+      role: h.role,
+      content: h.content,
+    }));
 
     const remotePayload: RemoteChatPayload = {
       model,
       message: toSend,
       temperature,
+      messages: conversationMessages,
     };
 
     const result = await sendRemoteChat(remotePayload, proxyBase);
 
     const answerSegments = [result.answer ?? ''];
     if (citations.some((citation) => citation.source)) {
+      const seenSources = new Set<string>();
       const refs = citations
         .filter((citation) => citation.source)
+        .filter((citation) => {
+          const source = citation.source!.trim();
+          if (!source || seenSources.has(source)) {
+            return false;
+          }
+          seenSources.add(source);
+          return true;
+        })
         .map((citation) => `[${citation.idx}] ${citation.source}`)
         .join('  |  ');
       answerSegments.push(`\n\n-- Sources: ${refs}`);
@@ -328,5 +452,86 @@ export default {
   fetch: app.fetch,
 };
 
+function normalizeDatasetNames(context: QueryRequest['ragContext']): string[] {
+  const names: string[] = [];
+  const arrayInput = Array.isArray(context?.datasetNames) ? context?.datasetNames : [];
+  names.push(...arrayInput);
+  if (context?.datasetName) {
+    names.push(context.datasetName);
+  }
+  const splitComma = names
+    .flatMap((entry) => entry.split(','))
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  if (splitComma.length) {
+    return [...new Set(splitComma)];
+  }
+  return [...DEFAULT_RAG_DATASETS];
+}
+
+function chooseRetrievalK(datasets: string[]): number {
+  const lower = datasets.map((name) => name.toLowerCase());
+  if (lower.includes('service-centers')) {
+    return 25;
+  }
+  if (lower.includes('cars-lineup')) {
+    return 15;
+  }
+  return 5;
+}
+
+function extractTitleFromHtml(raw: string): string | undefined {
+  const match = raw.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (!match) {
+    return undefined;
+  }
+  const title = collapseWhitespace(match[1] ?? '');
+  return title || undefined;
+}
+
+function deriveFallbackTitle(url: string): string | undefined {
+  try {
+    const { hostname, pathname } = new URL(url);
+    const parts = [hostname, pathname.replace(/\//g, ' ').trim()].filter(Boolean);
+    const combined = parts.join(' - ');
+    return combined ? collapseWhitespace(combined) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function deriveDescriptionFromText(text: string): string | undefined {
+  const lines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length) {
+    return undefined;
+  }
+  const summary = collapseWhitespace(lines.slice(0, 3).join(' '));
+  return summary.length ? summary.slice(0, 280) : undefined;
+}
+
+function collapseWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function buildFilenameBase(candidate: string): string {
+  const slug = slugifyForFilename(candidate);
+  if (slug) {
+    return slug;
+  }
+  return `dataset-${Date.now()}`;
+}
+
+function slugifyForFilename(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/https?:\/\//g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60);
+}
 
 

@@ -3,6 +3,15 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch run index.ts",
+    "rag:status": "bun run scripts/reset-and-ingest.ts status",
+    "rag:reset-all": "bun run scripts/reset-and-ingest.ts reset-all",
+    "rag:reset": "bun run scripts/reset-and-ingest.ts reset",
+    "rag:ingest": "bun run scripts/reset-and-ingest.ts ingest-file",
+    "rag:ingest-dir": "bun run scripts/reset-and-ingest.ts ingest-dir"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

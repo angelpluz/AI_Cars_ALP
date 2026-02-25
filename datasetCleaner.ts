@@ -29,6 +29,7 @@ export type LlmReview = {
   proposed_content_text?: string;
   proposed_content_markdown?: string;
   notes?: string[];
+  summary?: string;
 };
 
 export type CleanedRecord = RawRecord & {
@@ -37,19 +38,16 @@ export type CleanedRecord = RawRecord & {
   keywords?: string[];
   content_text?: string;
   content_markdown?: string;
+  clean_text?: string;
+  clean_markdown?: string;
   word_count?: number;
   char_count?: number;
   token_count?: number;
   cleaned_at: string;
   cleaning_summary: CleanSummary;
   llm_review?: LlmReview;
+  llm_summary?: string;
 };
-
-const COOKIE_PATTERNS = [
-  /คุกกี้ประเภทนี้/iu,
-  /cookie/iu,
-  /เปิดใช้งานตลอดเวลา/iu,
-];
 
 const REPLACEMENTS: Array<[RegExp, string]> = [
   [/\r\n?/g, '\n'],
@@ -85,6 +83,13 @@ function normalizeWhitespace(text: string): string {
     .trim();
 }
 
+function flattenText(text: string): string {
+  if (!text.trim()) {
+    return '';
+  }
+  return text.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
+}
+
 function cleanContentText(raw: unknown): {
   cleaned: string;
   removedCookieParagraphs: number;
@@ -102,7 +107,7 @@ function cleanContentText(raw: unknown): {
   let dedupedParagraphs = 0;
 
   for (const paragraph of paragraphs) {
-    if (COOKIE_PATTERNS.some((pattern) => pattern.test(paragraph))) {
+    if (COOKIE_PATTERNS.length && COOKIE_PATTERNS.some((pattern) => pattern.test(paragraph))) {
       removedCookieParagraphs += 1;
       continue;
     }
@@ -145,7 +150,7 @@ function cleanMarkdown(raw: unknown): { cleaned: string; removedEmptyDataRows: n
     if (!line.trim()) {
       return true;
     }
-    if (COOKIE_PATTERNS.some((pattern) => pattern.test(line))) {
+    if (COOKIE_PATTERNS.length && COOKIE_PATTERNS.some((pattern) => pattern.test(line))) {
       removedEmptyDataRows += 1;
       return false;
     }
@@ -211,7 +216,7 @@ function estimateTokens(text: string): number {
 }
 
 function updateComputedCounts(record: CleanedRecord): void {
-  const text = record.content_text ?? '';
+  const text = record.clean_text ?? record.content_text ?? '';
   record.char_count = text.length;
   record.word_count = countWords(text);
   record.token_count = estimateTokens(text);
@@ -222,13 +227,17 @@ export function cleanRecord(record: RawRecord): CleanedRecord {
   const { cleaned: cleanedMarkdown, removedEmptyDataRows } = cleanMarkdown(record.content_markdown);
   const keywordResult = cleanKeywords(record.keywords);
 
+  const normalizedText = cleanedText ? flattenText(cleanedText) : '';
+  const normalizedMarkdown = cleanedMarkdown ? flattenText(cleanedMarkdown) : '';
   const cleanedRecord: CleanedRecord = {
     ...record,
     title: sanitizeString(record.title),
     description: sanitizeString(record.description),
     keywords: keywordResult.cleaned,
-    content_text: cleanedText || undefined,
-    content_markdown: cleanedMarkdown || undefined,
+    content_text: normalizedText || undefined,
+    content_markdown: normalizedMarkdown || undefined,
+    clean_text: normalizedText || undefined,
+    clean_markdown: normalizedMarkdown || undefined,
     word_count: 0,
     char_count: 0,
     token_count: 0,
@@ -338,20 +347,32 @@ export async function attachReview(record: CleanedRecord, model: string): Promis
       if (Array.isArray(issuesRaw) && issuesRaw.every((entry) => typeof entry === 'string')) {
         review.issues = issuesRaw as string[];
       }
+      const summaryRaw = maybeObj.summary;
+      if (typeof summaryRaw === 'string' && summaryRaw.trim()) {
+        const sanitizedSummary = sanitizeString(summaryRaw);
+        if (sanitizedSummary) {
+          review.summary = sanitizedSummary;
+          record.llm_summary = sanitizedSummary;
+        }
+      }
       const proposedText = maybeObj.proposedContentText;
       if (typeof proposedText === 'string' && proposedText.trim()) {
         const sanitizedText = sanitizeString(proposedText);
         if (sanitizedText) {
+          const flattenedText = flattenText(sanitizedText);
           review.proposed_content_text = sanitizedText;
           record.content_text = sanitizedText;
+          record.clean_text = flattenedText;
         }
       }
       const proposedMarkdown = maybeObj.proposedContentMarkdown;
       if (typeof proposedMarkdown === 'string' && proposedMarkdown.trim()) {
         const sanitizedMarkdown = sanitizeString(proposedMarkdown);
         if (sanitizedMarkdown) {
+          const flattenedMarkdown = flattenText(sanitizedMarkdown);
           review.proposed_content_markdown = sanitizedMarkdown;
           record.content_markdown = sanitizedMarkdown;
+          record.clean_markdown = flattenedMarkdown || undefined;
         }
       }
       const notesRaw = maybeObj.notes;
@@ -372,45 +393,44 @@ export async function attachReview(record: CleanedRecord, model: string): Promis
     };
   }
 }
-
 export function buildReviewPrompt(record: CleanedRecord): string {
-  const sections: string[] = [];
-  sections.push(
-    [
-      'คุณเป็นผู้พิสูจน์อักษรและบรรณาธิกรข้อมูลที่เตรียมจะใส่ในระบบ RAG.',
-      'งานของคุณคือ:',
-      '1. ตรวจว่ามี artefact จากเว็บ (ตัวอักษรประหลาด, หัวตารางซ้ำ, คำเตือน cookie ฯลฯ) เหลือหรือไม่',
-      '2. ตรวจความสอดคล้องของหัวข้อกับเนื้อหา',
-      '3. เสนอการแก้ไขเฉพาะส่วนที่ควรแก้ โดยคงความหมายหลักเหมือนเดิม',
-      '4. อย่าเพิ่มข้อมูลใหม่จากจินตนาการ',
-    ].join('\n'),
-  );
 
-  sections.push(
-    [
-      `URL: ${record.url ?? '(ไม่มี)'}`,
-      `Title: ${record.title ?? '(ไม่มี)'}`,
-      `Description: ${record.description ?? '(ไม่มี)'}`,
-      `Keywords: ${(record.keywords && record.keywords.length) ? record.keywords.join(', ') : '(ไม่มี)'}`,
-    ].join('\n'),
-  );
+  const header = [
+    'You are a meticulous editor preparing content for a RAG knowledge base.',
+    'Follow these steps:',
+    '1. Ensure no web artefacts remain (cookie notices, duplicate headers, stray markup, etc.).',
+    '2. Verify the title/description align with the body content.',
+    '3. Suggest concise edits only where needed while preserving meaning.',
+    '4. Produce a short Thai summary of the essential facts.',
+    '5. Do not invent or add information that is not present.',
+  ].join('\n');
 
-  sections.push('CONTENT_TEXT:\n' + (record.content_text ?? '(ไม่มี)'));
-  sections.push('CONTENT_MARKDOWN:\n' + (record.content_markdown ?? '(ไม่มี)'));
+  const meta = [
+    `URL: ${record.url ?? '(none)'}`,
+    `Title: ${record.title ?? '(none)'}`,
+    `Description: ${record.description ?? '(none)'}`,
+    `Keywords: ${(record.keywords && record.keywords.length) ? record.keywords.join(', ') : '(none)'}`,
+  ].join('\n');
 
-  sections.push(
-    [
-      'ตอบกลับเป็น JSON ล้วนๆ ตามคีย์นี้เท่านั้น:',
-      '{',
-      '  "issues": ["<ปัญหาที่พบหรือสตริงว่างถ้าไม่พบ>"],',
-      '  "proposedContentText": "<ข้อความที่แก้ไขแล้วหรือสตริงว่างถ้าไม่จำเป็น>",',
-      '  "proposedContentMarkdown": "<markdown ที่แก้ไขแล้วหรือสตริงว่างถ้าไม่จำเป็น>",',
-      '  "notes": ["<ข้อเสนอแนะเพิ่มเติมหรือสตริงว่างถ้าไม่มี>"]',
-      '}',
-    ].join('\n'),
-  );
+  const contentText = 'CONTENT_TEXT:\n' + (record.content_text ?? '(none)');
+  const contentMarkdown = 'CONTENT_MARKDOWN:\n' + (record.content_markdown ?? '(none)');
 
-  sections.push('ห้ามใส่อธิบายเพิ่มอื่นใดนอกเหนือ JSON.');
+  const instructions = [
+    'Return JSON using exactly these keys:',
+    '{',
+    '  "issues": ["<describe_issue_or_empty_string>"]',
+    '  "summary": "<thai_summary_or_empty_string>"',
+    '  "proposedContentText": "<revised_plain_text_or_empty_string>"',
+    '  "proposedContentMarkdown": "<revised_markdown_or_empty_string>"',
+    '  "notes": ["<additional_notes_or_empty_string>"]',
+    '}',
+  ].join('\n');
 
-  return sections.join('\n\n');
+  return [header, meta, contentText, contentMarkdown, instructions, 'Do not add explanations outside the JSON payload.'].join('\n\n');
 }
+const STRIP_COOKIE_NOTICES =
+  (Bun.env.STRIP_COOKIE_NOTICES ?? 'false').toLowerCase() === 'true';
+
+const COOKIE_PATTERNS = STRIP_COOKIE_NOTICES
+  ? [/คุกกี้ประเภทนี้/iu, /cookie/iu, /เปิดใช้งานตลอดเวลา/iu]
+  : [];
