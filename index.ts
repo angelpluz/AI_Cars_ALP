@@ -470,7 +470,7 @@ app.post('/api/query', async (c) => {
     }
     console.log('[RAG] Using datasets:', datasetNames);
     if (body.useRAG && datasetNames.length) {
-      const retrievalK = chooseRetrievalK(datasetNames);
+      const retrievalK = chooseRetrievalK(datasetNames, query);
       const retrieved = await retrieve(datasetNames, query, retrievalK, { useHybrid: true, rerank: true });
       console.log('[RAG] Retrieved', retrieved.length, 'chunks');
       if (retrieved.length) {
@@ -599,15 +599,25 @@ function normalizeDatasetNames(context: QueryRequest['ragContext']): string[] {
   return [...DEFAULT_RAG_DATASETS];
 }
 
-function chooseRetrievalK(datasets: string[]): number {
+function chooseRetrievalK(datasets: string[], query: string): number {
   const lower = datasets.map((name) => name.toLowerCase());
-  if (lower.includes('service-centers')) {
+  const queryLower = query.toLowerCase();
+
+  const serviceCenterIntent =
+    /ศูนย์|สาขา|ที่อยู่|เบอร์|โทร|เปิด|ปิด|location|branch|service center|โชว์รูม/i.test(queryLower);
+  if (lower.includes('service-centers') && serviceCenterIntent) {
     return 25;
   }
+
   if (lower.includes('cars-lineup')) {
     return 15;
   }
-  return 5;
+
+  if (lower.includes('finance-rules')) {
+    return 10;
+  }
+
+  return 8;
 }
 
 function extractTitleFromHtml(raw: string): string | undefined {
