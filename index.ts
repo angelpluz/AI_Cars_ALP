@@ -60,7 +60,9 @@ const RAG_ADMIN_TOKEN = Bun.env.RAG_ADMIN_TOKEN?.trim() || '';
 // Users ที่อนุญาตให้ใช้งาน
 const ALLOWED_USERS: Record<string, string> = {
   'test001': 'L4vqpxLa_XZF',
-  'angelpluz04': 'Rc720699@'
+  'angelpluz04': 'Rc720699@',
+  'admin': 'adminn479',
+  'test002': 'L4vqpxLa_XZF',
 };
 
 // Store auth sessions
