@@ -222,13 +222,14 @@ export async function retrieve(
     limit * 2, // ดึงมากกว่าที่ต้องการเพื่อ re-rank
     options?.useHybrid ?? true
   );
+  const boosted = applyQueryAwareBoost(results, query);
 
   // Re-ranking ง่ายๆ ถ้าเปิด
   if (options?.rerank) {
-    return rerankResults(results, query).slice(0, limit);
+    return rerankResults(boosted, query).slice(0, limit);
   }
 
-  return results.slice(0, limit);
+  return boosted.slice(0, limit);
 }
 
 // Simple re-ranking โดยให้ความสำคัญกับ query terms ที่อยู่ใกล้กัน
@@ -256,6 +257,69 @@ function rerankResults(results: RetrievedChunk[], query: string): RetrievedChunk
       score: item.score + bonus,
     };
   }).sort((a, b) => b.score - a.score);
+}
+
+function applyQueryAwareBoost(results: RetrievedChunk[], query: string): RetrievedChunk[] {
+  const queryLower = query.toLowerCase();
+  const hasSpecIntent =
+    /รุ่น|รุ่นย่อย|เกรด|ราคา|เครื่องยนต์|แรงม้า|แรงบิด|มิติ|ขนาด|ความปลอดภัย|อุปกรณ์|ฟีเจอร์|กี่รุ่น|มีรุ่น/i.test(queryLower);
+
+  if (!hasSpecIntent) {
+    return results;
+  }
+
+  const modelKeywords = [
+    'yaris cross',
+    'yaris ativ',
+    'yaris',
+    'corolla cross',
+    'corolla altis',
+    'camry',
+    'fortuner',
+    'hilux',
+    'revo',
+    'bz4x',
+    'alphard',
+    'veloz',
+    'innova',
+    'commuter',
+    'hiace',
+    'coaster',
+    'gr sport',
+    'gr 86',
+    'supra',
+  ].filter((kw) => queryLower.includes(kw));
+
+  return results
+    .map((item) => {
+      const textLower = item.text.toLowerCase();
+      let bonus = 0;
+      const datasetLower = item.dataset.toLowerCase();
+      const isCarDetailDataset = datasetLower === 'cars-lineup' || /^cars-.+-detail$/.test(datasetLower);
+
+      if (isCarDetailDataset) {
+        bonus += 0.09;
+      } else if (datasetLower === 'car-comparison') {
+        bonus -= 0.03;
+      }
+
+      if (textLower.includes('รุ่นย่อยและราคา')) {
+        bonus += 0.05;
+      }
+
+      if (modelKeywords.length && modelKeywords.some((kw) => textLower.includes(kw))) {
+        bonus += 0.07;
+        if (textLower.includes('### toyota')) {
+          bonus += 0.03;
+        }
+      }
+
+      return {
+        ...item,
+        score: item.score + bonus,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
 }
 
 export function buildAugmentedPrompt(
@@ -295,7 +359,9 @@ export function buildAugmentedPrompt(
   }
 
   // เพิ่ม guidance สำหรับ datasets อื่นๆ
-  const carCount = datasetHints.get('cars-lineup');
+  const carCount = Array.from(datasetHints.entries())
+    .filter(([dataset]) => dataset === 'cars-lineup' || /^cars-.+-detail$/.test(dataset))
+    .reduce((sum, [, count]) => sum + count, 0);
   if (carCount && carCount > 0) {
     guidance.push(
       `ให้ตอบตรงคำถาม หากถามเรื่องรุ่นย่อยให้แจงแจงรุ่นย่อยและราคา หากถามเรื่องเดียวไม่ต้องไปยุ่งเรื่องอื่น`,

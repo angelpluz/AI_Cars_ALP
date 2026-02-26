@@ -50,7 +50,8 @@ const parsedMaxTokens = Number(Bun.env.MAX_TOKENS);
 const DEFAULT_MAX_TOKENS = Number.isFinite(parsedMaxTokens) ? parsedMaxTokens : 768;
 
 const DEFAULT_RAG_DATASET =
-  Bun.env.DEFAULT_RAG_DATASET ?? 'cars-lineup,finance-rules,service-centers,car-troubleshooting,spare-parts,promotions,buying-guide,car-comparison';
+  Bun.env.DEFAULT_RAG_DATASET ??
+  'cars-sedan-detail,cars-suv-detail,cars-ev-detail,cars-mpv-detail,cars-pickup-detail,cars-van-detail,car-comparison,finance-rules,service-centers,car-troubleshooting,spare-parts,promotions,buying-guide';
 const DEFAULT_RAG_DATASETS = DEFAULT_RAG_DATASET
   .split(',')
   .map((entry) => entry.trim())
@@ -611,8 +612,9 @@ function chooseRetrievalK(datasets: string[], query: string): number {
     return 25;
   }
 
-  if (lower.includes('cars-lineup')) {
-    return 15;
+  const hasCarDataset = lower.some((name) => name === 'cars-lineup' || /^cars-.+-detail$/.test(name) || name === 'car-comparison');
+  if (hasCarDataset) {
+    return 18;
   }
 
   if (lower.includes('finance-rules')) {
